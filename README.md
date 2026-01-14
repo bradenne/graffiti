@@ -2,7 +2,7 @@
 
 > Du street art sur un mur de commits.
 
-Ce dépôt ne contient (presque) rien… sauf ~960 commits vides, soigneusement antidatés
+Ce dépôt ne contient (presque) rien… sauf ~760 commits vides, soigneusement antidatés
 pour peindre sur mon [graphe de contributions GitHub](https://github.com/bradenne) :
 
 ```
@@ -20,8 +20,9 @@ pour peindre sur mon [graphe de contributions GitHub](https://github.com/bradenn
 ## Comment ça marche
 
 Le graphe GitHub est une grille de 7 lignes (dimanche → samedi) par ~53 colonnes (semaines).
-Chaque case allumée reçoit 8 commits vides datés à midi UTC : toutes les cases ont le même
-nombre de commits, elles prennent donc toutes la nuance de vert la plus foncée.
+Chaque case allumée reçoit entre 1 et 12 commits vides datés à midi UTC. Le nombre est tiré
+au hasard (graine = la date, donc reproductible) : les cases se répartissent sur les quatre
+nuances de vert du graphe.
 
 ```bash
 node paint.ts preview   # aperçu dans le terminal

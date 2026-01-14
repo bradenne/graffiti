@@ -2,8 +2,10 @@
  * Paint pixel art on the GitHub contribution graph with backdated empty commits.
  *
  * The graph is a grid of weeks (columns, starting on Sunday) by weekdays (rows,
- * Sunday = 0). Each lit pixel gets COMMITS_PER_PIXEL commits so every pixel
- * lands on the darkest green.
+ * Sunday = 0). Each lit pixel gets a random number of commits (between
+ * MIN_COMMITS_PER_PIXEL and MAX_COMMITS_PER_PIXEL) so pixels spread across the
+ * graph's green shades. The randomness is seeded by the date: same canvas,
+ * same shades on every run.
  *
  * Usage (Node.js >= 23.6 runs TypeScript natively):
  *   node paint.ts preview   # print the canvas in the terminal
@@ -12,7 +14,8 @@
 
 import { execFileSync } from "node:child_process";
 
-const COMMITS_PER_PIXEL = 8;
+const MIN_COMMITS_PER_PIXEL = 1;
+const MAX_COMMITS_PER_PIXEL = 12;
 const ROWS = 7;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -59,6 +62,27 @@ function isoDay(date: Date): string {
 }
 
 /** Sunday of the week holding January 1st: column 0 of the yearly graph. */
+/** Deterministic pseudo-random integer in [min, max], derived from a string seed. */
+function seededInt(seed: string, min: number, max: number): number {
+  let hash = 2166136261;
+  for (const char of seed) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
+  // Mulberry32 finalizer spreads the FNV-1a hash bits evenly.
+  hash = Math.imul(hash ^ (hash >>> 15), hash | 1);
+  hash ^= hash + Math.imul(hash ^ (hash >>> 7), hash | 61);
+  const unit = ((hash ^ (hash >>> 14)) >>> 0) / 4294967296;
+  return min + Math.floor(unit * (max - min + 1));
+}
+
+function commitsFor(day: Date): number {
+  return seededInt(isoDay(day), MIN_COMMITS_PER_PIXEL, MAX_COMMITS_PER_PIXEL);
+}
+
+/** Terminal shade matching the GitHub quartile of a commit count. */
+function shade(commits: number): string {
+  const quartile = Math.ceil((commits / MAX_COMMITS_PER_PIXEL) * 4);
+  return ["░", "▒", "▓", "█"][quartile - 1];
+}
+
 function firstSundayColumn(year: number): Date {
   const januaryFirst = utcDate(year, 1, 1);
   return addDays(januaryFirst, -januaryFirst.getUTCDay());
@@ -93,12 +117,13 @@ function canvases(): Map<number, Date[]> {
 function preview(year: number, dates: Date[]): void {
   const lit = new Set(dates.map(isoDay));
   const origin = firstSundayColumn(year);
-  console.log(`\n${year}  (${dates.length} pixels, ${dates.length * COMMITS_PER_PIXEL} commits)`);
+  const total = dates.reduce((sum, day) => sum + commitsFor(day), 0);
+  console.log(`\n${year}  (${dates.length} pixels, ${total} commits)`);
   for (let row = 0; row < ROWS; row++) {
     let line = "";
     for (let column = 0; column < columnCount(year); column++) {
       const day = addDays(origin, column * 7 + row);
-      line += lit.has(isoDay(day)) ? "█" : day.getUTCFullYear() === year ? "·" : " ";
+      line += lit.has(isoDay(day)) ? shade(commitsFor(day)) : day.getUTCFullYear() === year ? "·" : " ";
     }
     console.log(line);
   }
@@ -107,7 +132,7 @@ function preview(year: number, dates: Date[]): void {
 
 function paint(dates: Date[]): void {
   for (const day of dates) {
-    for (let index = 0; index < COMMITS_PER_PIXEL; index++) {
+    for (let index = 0; index < commitsFor(day); index++) {
       // Noon UTC keeps the same calendar day in nearly every timezone.
       const timestamp = `${isoDay(day)}T12:${String(index).padStart(2, "0")}:00+0000`;
       execFileSync(
