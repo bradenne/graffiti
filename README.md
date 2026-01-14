@@ -2,19 +2,19 @@
 
 > Du street art sur un mur de commits.
 
-Ce dépôt ne contient (presque) rien… sauf ~760 commits vides, soigneusement antidatés
+Ce dépôt ne contient (presque) rien… sauf ~770 commits vides, soigneusement antidatés
 pour peindre sur mon [graphe de contributions GitHub](https://github.com/bradenne) :
 
 ```
-2026 — trigramme et cap sur la suite
+2026 — <-- BRA --> jusqu'à fin septembre
 
- █████··█████···████················█················
- ██··██·██··██·██··██···············██···············
- ██··██·██··██·██··██···············███··············
- █████··█████··██████··█████████████████·············
-·██··██·██·██··██··██···············███··············
-·██··██·██··██·██··██···············██··············
-·█████··██··██·██··██···············█···············
+ ····█·····█████··█████···████······█················
+ ···██·····██··██·██··██·██··██·····██···············
+ ··███·····██··██·██··██·██··██·····███··············
+ ·███████··█████··█████··██████··███████·············
+···███·····██··██·██·██··██··██·····███··············
+····██·····██··██·██··██·██··██·····██·············· 
+·····█·····█████··██··██·██··██·····█··············· 
 ```
 
 ## Comment ça marche
@@ -29,7 +29,7 @@ node paint.ts preview   # aperçu dans le terminal
 node paint.ts paint     # génère les commits dans le dépôt courant
 ```
 
-Les motifs (lettres et flèche) sont définis en ASCII directement dans `paint.ts`, exécuté nativement par Node.js ≥ 23.6 (aucune dépendance).
+Les motifs (lettres et flèches) sont définis en ASCII directement dans `paint.ts`, exécuté nativement par Node.js ≥ 23.6 (aucune dépendance).
 
 ---
 

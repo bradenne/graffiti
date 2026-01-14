@@ -29,15 +29,21 @@ const GLYPHS: Readonly<Record<string, Bitmap>> = {
 };
 
 // Arrow shaft and head, drawn right after the trigram on 2026.
-const ARROW: Bitmap = [
-  "             #   ",
-  "             ##  ",
-  "             ### ",
-  "#################",
-  "             ### ",
-  "             ##  ",
-  "             #   ",
+const RIGHT_ARROW: Bitmap = [
+  "   #   ",
+  "   ##  ",
+  "   ### ",
+  "#######",
+  "   ### ",
+  "   ##  ",
+  "   #   ",
 ];
+
+const LEFT_ARROW: Bitmap = mirror(RIGHT_ARROW);
+
+function mirror(bitmap: Bitmap): string[] {
+  return bitmap.map((line) => [...line].reverse().join(""));
+}
 
 function textBitmap(text: string, letterSpacing = " "): string[] {
   return Array.from({ length: ROWS }, (_, row) =>
@@ -45,8 +51,8 @@ function textBitmap(text: string, letterSpacing = " "): string[] {
   );
 }
 
-function joinBitmaps(left: Bitmap, right: Bitmap, gap: string): string[] {
-  return left.map((line, row) => line + gap + right[row]);
+function joinBitmaps(gap: string, ...bitmaps: Bitmap[]): string[] {
+  return Array.from({ length: ROWS }, (_, row) => bitmaps.map((bitmap) => bitmap[row]).join(gap));
 }
 
 function utcDate(year: number, month: number, day: number): Date {
@@ -61,7 +67,6 @@ function isoDay(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-/** Sunday of the week holding January 1st: column 0 of the yearly graph. */
 /** Deterministic pseudo-random integer in [min, max], derived from a string seed. */
 function seededInt(seed: string, min: number, max: number): number {
   let hash = 2166136261;
@@ -83,6 +88,7 @@ function shade(commits: number): string {
   return ["░", "▒", "▓", "█"][quartile - 1];
 }
 
+/** Sunday of the week holding January 1st: column 0 of the yearly graph. */
 function firstSundayColumn(year: number): Date {
   const januaryFirst = utcDate(year, 1, 1);
   return addDays(januaryFirst, -januaryFirst.getUTCDay());
@@ -110,8 +116,9 @@ function bitmapDates(year: number, bitmap: Bitmap, firstColumn: number): Date[] 
 }
 
 function canvases(): Map<number, Date[]> {
-  const trigramArrow = joinBitmaps(textBitmap("BRA"), ARROW, "  ");
-  return new Map([[2026, bitmapDates(2026, trigramArrow, 1)]]);
+  // <-- BRA -->, the right arrow tip lands on 2026-09-30.
+  const framedTrigram = joinBitmaps("  ", LEFT_ARROW, textBitmap("BRA"), RIGHT_ARROW);
+  return new Map([[2026, bitmapDates(2026, framedTrigram, 2)]]);
 }
 
 function preview(year: number, dates: Date[]): void {
